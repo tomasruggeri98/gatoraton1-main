@@ -120,8 +120,9 @@ public class ObstacleEditor : MonoBehaviour
         if (instructionsText != null)
         {
             instructionsText.text =
-                $"Place walls within a {gridWidth}×{gridHeight} grid.\n" +
-                "LMB: Place   RMB: Erase   Press Enter or Finish to start chase";
+                $"Coloca los obstaculos con click izquierdo, eliminalos con click derecho\n" +
+                "Presiona Enter para finalizar la edición" +
+                "y comenzar la búsqueda";
         }
     }
 

@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Tilemaps;
 using Pathfinding;
 
 public class GameInitializer : MonoBehaviour
 {
-    [Header("Editor de Obst�culos")]
+    [Header("Editor de Obstáculos")]
     public ObstacleEditor obstacleEditor;
     public Tilemap groundTilemap;
     public Camera gameCamera;
@@ -14,11 +14,10 @@ public class GameInitializer : MonoBehaviour
     public GameObject mousePrefab;
     public Transform charactersParent;
 
-    [Header("A* y C�mara")]
+    [Header("A* y Cámara")]
     public float tileSize = 1f;
     public float cameraMargin = 1f;
 
-    // Internos
     private GameObject catInstance;
     private GameObject mouseInstance;
 
@@ -27,20 +26,26 @@ public class GameInitializer : MonoBehaviour
         int w = GameSettings.GridWidth;
         int h = GameSettings.GridHeight;
 
-        // Configurar cuadr�cula
+        // Reset Tilemap offset
+        obstacleEditor.tilemap.transform.position = Vector3.zero;
+
+        // Alinear celdas
+        obstacleEditor.tilemap.layoutGrid.cellSize = new Vector3(tileSize, tileSize, 0);
+
+        // Configurar cuadrícula
         obstacleEditor.SetGridBounds(w, h);
 
-        // Construir borde de obst�culos
+        // Construir el borde de obstáculos
         BuildBorders(w, h);
 
         // Instanciar personajes
         PlaceCharacters(w, h);
 
-        // Ajustar c�mara y grafo A*
+        // Ajustar cámara y grafo A*
         ConfigureCamera(w, h);
         ConfigureGridGraph(w, h);
 
-        // Escuchar el fin de la edici�n
+        // Al terminar la edición, iniciar la persecución
         obstacleEditor.OnEditingFinished.AddListener(() =>
         {
             var chase = catInstance.GetComponent<CatGridChase>();
@@ -53,12 +58,14 @@ public class GameInitializer : MonoBehaviour
         Tilemap tilemap = obstacleEditor.tilemap;
         TileBase tile = obstacleEditor.obstacleTile;
 
+        // Bordes horizontales
         for (int x = 0; x < w; x++)
         {
             tilemap.SetTile(new Vector3Int(x, 0, 0), tile);
             tilemap.SetTile(new Vector3Int(x, h - 1, 0), tile);
         }
 
+        // Bordes verticales
         for (int y = 0; y < h; y++)
         {
             tilemap.SetTile(new Vector3Int(0, y, 0), tile);
@@ -87,7 +94,6 @@ public class GameInitializer : MonoBehaviour
     {
         float cx = (width * tileSize) / 2f - tileSize / 2f;
         float cy = (height * tileSize) / 2f - tileSize / 2f;
-
         gameCamera.transform.position = new Vector3(cx, cy, gameCamera.transform.position.z);
 
         float halfH = (height * tileSize) / 2f + cameraMargin;
@@ -104,6 +110,8 @@ public class GameInitializer : MonoBehaviour
 
         float worldW = width * tileSize;
         float worldH = height * tileSize;
+
+        // El centro debe estar en el medio exacto
         gg.center = new Vector3(worldW / 2f - tileSize / 2f, 0, worldH / 2f - tileSize / 2f);
 
         AstarPath.active.Scan();

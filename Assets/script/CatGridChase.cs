@@ -6,16 +6,19 @@ using Pathfinding;
 [RequireComponent(typeof(Seeker))]
 public class CatGridChase : MonoBehaviour
 {
-    [Tooltip("Transform del ratón.")]
-    public Transform target;
+    [HideInInspector]
+    public Transform target;            // Se asigna desde GameInitializer
+
+    [Tooltip("Segundos que tarda en recorrer una casilla")]
     public float moveDuration = 0.3f;
+
+    // Referencias para animación y flip
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
 
     private Seeker seeker;
     private Path path;
     private int currentWaypoint;
-
-    private Animator animator;
-    private SpriteRenderer spriteRenderer;
 
     void Awake()
     {
@@ -25,21 +28,26 @@ public class CatGridChase : MonoBehaviour
     }
 
     /// <summary>
-    /// Inicia la persecución: calcula la ruta una única vez.
+    /// Lanza la búsqueda de ruta al ratón.
     /// </summary>
     public void BeginChase()
     {
-        if (target == null) return;
-
-        // Activa la animación de movimiento
-        if (animator != null) animator.SetBool("isMoving", true);
-
+        if (target == null)
+        {
+            Debug.LogError("CatGridChase: target no asignado.");
+            return;
+        }
         seeker.StartPath(transform.position, target.position, OnPathComplete);
     }
 
     void OnPathComplete(Path p)
     {
-        if (p.error) return;
+        if (p.error)
+        {
+            Debug.LogWarning("CatGridChase ruta error: " + p.errorLog);
+            return;
+        }
+
         path = p;
         currentWaypoint = 0;
         StopAllCoroutines();
@@ -48,37 +56,42 @@ public class CatGridChase : MonoBehaviour
 
     IEnumerator FollowPath()
     {
-        // Recorre todos los waypoints una vez
+        // Activar animación de caminar
+        if (animator != null) animator.SetBool("isMoving", true);
+
         while (currentWaypoint < path.vectorPath.Count)
         {
             Vector3 from = transform.position;
             Vector3 to = path.vectorPath[currentWaypoint];
 
-            // Voltear sprite según dirección X
+            // Voltear sprite según la dirección en X
             float dx = to.x - from.x;
             if (spriteRenderer != null && Mathf.Abs(dx) > 0.01f)
                 spriteRenderer.flipX = dx < 0f;
 
-            // Interpolación suave
-            float t = 0f;
-            while (t < moveDuration)
-            {
-                transform.position = Vector3.Lerp(from, to, t / moveDuration);
-                t += Time.deltaTime;
-                yield return null;
-            }
-            transform.position = to;
+            // Mover una celda suavemente
+            yield return MoveOneCell(from, to);
+
             currentWaypoint++;
         }
 
-        // Al completar la ruta, posicionarse exactamente sobre el target
-        if (target != null)
-            transform.position = target.position;
-
-        // Detener animación de movimiento
+        // Desactivar animación de caminar
         if (animator != null) animator.SetBool("isMoving", false);
 
-        // NO reiniciamos BeginChase ni el bucle: terminamos aquí
-        yield break;
+        // Esperar un instante y reiniciar persecución
+        yield return new WaitForSeconds(0.5f);
+        BeginChase();
+    }
+
+    IEnumerator MoveOneCell(Vector3 from, Vector3 to)
+    {
+        float t = 0f;
+        while (t < moveDuration)
+        {
+            transform.position = Vector3.Lerp(from, to, t / moveDuration);
+            t += Time.deltaTime;
+            yield return null;
+        }
+        transform.position = to;
     }
 }
