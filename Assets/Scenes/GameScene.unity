@@ -164,14 +164,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   obstacleEditor: {fileID: 547146738}
-  gameCamera: {fileID: 519420031}
   groundTilemap: {fileID: 2045139583}
+  gameCamera: {fileID: 519420031}
   catPrefab: {fileID: 9123060620118885754, guid: 5096684475439ab4a871bca549abf1a7, type: 3}
   mousePrefab: {fileID: 7606767987382145295, guid: 2932bb4d11664d143843b18efcd398c7, type: 3}
   charactersParent: {fileID: 0}
   tileSize: 1
   cameraMargin: 1
-  minDistanceCells: 5
 --- !u!1 &264703117
 GameObject:
   m_ObjectHideFlags: 0
