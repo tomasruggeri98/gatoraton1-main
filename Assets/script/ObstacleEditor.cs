@@ -1,5 +1,4 @@
-﻿// ObstacleEditor.cs
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 using UnityEngine.Events;
@@ -37,7 +36,7 @@ public class ObstacleEditor : MonoBehaviour
     {
         // Suscribir el botón Finish
         if (finishButton != null)
-            finishButton.onClick.AddListener(() => BeginChase());
+            finishButton.onClick.AddListener(BeginChase);
     }
 
     void OnEnable()
@@ -48,6 +47,7 @@ public class ObstacleEditor : MonoBehaviour
     void Update()
     {
         if (!editMode) return;
+
         HighlightCellUnderMouse();
         HandlePlacement();
 
@@ -98,7 +98,7 @@ public class ObstacleEditor : MonoBehaviour
         tilemap.RefreshAllTiles();
         AstarPath.active.Scan();
 
-        // Disparar la señal para que el Initializer instancie y arranque la persecución
+        // Disparar la señal para que GameInitializer instancie y arranque la persecución
         OnEditingFinished?.Invoke();
     }
 
