@@ -1,61 +1,65 @@
+// CatGridChase.cs
+using System.Collections;
 using UnityEngine;
 using Pathfinding;
-using System.Collections;
 
 [RequireComponent(typeof(Seeker))]
 public class CatGridChase : MonoBehaviour
 {
+    [Tooltip("Transform del ratón.")]
     public Transform target;
     public float moveDuration = 0.3f;
-
-    // NUEVO: referencia al Animator y SpriteRenderer
-    private Animator animator;
-    private SpriteRenderer spriteRenderer;
 
     private Seeker seeker;
     private Path path;
     private int currentWaypoint;
 
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
+
     void Awake()
     {
         seeker = GetComponent<Seeker>();
-        // NUEVO: caché del Animator y SpriteRenderer
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
+    /// <summary>
+    /// Inicia la persecución: calcula la ruta una única vez.
+    /// </summary>
     public void BeginChase()
     {
         if (target == null) return;
+
+        // Activa la animación de movimiento
+        if (animator != null) animator.SetBool("isMoving", true);
+
         seeker.StartPath(transform.position, target.position, OnPathComplete);
     }
 
     void OnPathComplete(Path p)
     {
-        if (!p.error)
-        {
-            path = p;
-            currentWaypoint = 0;
-            StopAllCoroutines();
-            StartCoroutine(FollowPath());
-        }
+        if (p.error) return;
+        path = p;
+        currentWaypoint = 0;
+        StopAllCoroutines();
+        StartCoroutine(FollowPath());
     }
 
     IEnumerator FollowPath()
     {
-        // NUEVO: activar animación de caminar
-        if (animator != null) animator.SetBool("isMoving", true);
-
+        // Recorre todos los waypoints una vez
         while (currentWaypoint < path.vectorPath.Count)
         {
             Vector3 from = transform.position;
             Vector3 to = path.vectorPath[currentWaypoint];
 
-            // NUEVO: voltear sprite según la dirección en X
+            // Voltear sprite según dirección X
             float dx = to.x - from.x;
             if (spriteRenderer != null && Mathf.Abs(dx) > 0.01f)
                 spriteRenderer.flipX = dx < 0f;
 
+            // Interpolación suave
             float t = 0f;
             while (t < moveDuration)
             {
@@ -67,10 +71,14 @@ public class CatGridChase : MonoBehaviour
             currentWaypoint++;
         }
 
-        // NUEVO: desactivar animación de caminar
+        // Al completar la ruta, posicionarse exactamente sobre el target
+        if (target != null)
+            transform.position = target.position;
+
+        // Detener animación de movimiento
         if (animator != null) animator.SetBool("isMoving", false);
 
-        yield return new WaitForSeconds(0.5f);
-        BeginChase();
+        // NO reiniciamos BeginChase ni el bucle: terminamos aquí
+        yield break;
     }
 }
